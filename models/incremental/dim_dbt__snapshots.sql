@@ -1,15 +1,15 @@
-{{ config( materialized='incremental', unique_key='manifest_model_id' ) }}
+{{ config( materialized='incremental', unique_key='manifest_snapshot_id' ) }}
 
-with dbt_models as (
+with dbt_snapshots as (
 
     select * from {{ ref('stg_dbt__snapshots') }}
 
 ),
 
-dbt_models_incremental as (
+dbt_snapshots_incremental as (
 
     select *
-    from dbt_models
+    from dbt_snapshots
 
     {% if is_incremental() %}
     -- this filter will only be applied on an incremental run
@@ -21,20 +21,19 @@ dbt_models_incremental as (
 fields as (
 
     select
-        manifest_model_id,
+        manifest_snapshot_id,
         command_invocation_id,
         dbt_cloud_run_id,
         artifact_generated_at,
         node_id,
-        model_database,
-        model_schema,
+        snapshot_database,
+        snapshot_schema,
         name,
         depends_on_nodes,
         package_name,
-        model_path,
-        checksum,
-        model_materialization
-    from dbt_models_incremental
+        snapshot_path,
+        checksum
+    from dbt_snapshots_incremental
 
 )
 

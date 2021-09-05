@@ -1,4 +1,4 @@
-{{ config( materialized='incremental', unique_key='manifest_source_id' ) }}
+{{ config( materialized='incremental', unique_key='manifest_test_id' ) }}
 
 with dbt_tests as (
 
@@ -21,7 +21,7 @@ dbt_tests_incremental as (
 fields as (
 
     select
-        manifest_source_id,
+        manifest_test_id,
         command_invocation_id,
         dbt_cloud_run_id,
         artifact_generated_at,
