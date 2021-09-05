@@ -27,6 +27,7 @@ fields as (
         artifact_generated_at,
         node_id,
         name,
+        depends_on_nodes,
         package_name,
         test_path
     from dbt_tests_incremental
