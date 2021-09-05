@@ -1,23 +1,23 @@
-{{ config( materialized='incremental', unique_key='model_execution_id' ) }}
+{{ config( materialized='incremental', unique_key='seed_execution_id' ) }}
 
-with models as (
+with seeds as (
 
     select *
     from {{ ref('dim_dbt__seeds') }}
 
 ),
 
-model_executions as (
+seed_executions as (
 
     select *
     from {{ ref('stg_dbt__seed_executions') }}
 
 ),
 
-model_executions_incremental as (
+seed_executions_incremental as (
 
     select *
-    from model_executions
+    from seed_executions
 
     {% if is_incremental() %}
     -- this filter will only be applied on an incremental run
@@ -26,27 +26,26 @@ model_executions_incremental as (
 
 ),
 
-model_executions_with_materialization as (
+seed_executions_with_materialization as (
 
     select
-        model_executions_incremental.*,
-        models.model_materialization,
-        models.model_schema,
-        models.name
-    from model_executions_incremental
-    left join models on
+        seed_executions_incremental.*,
+        seeds.seed_schema,
+        seeds.name
+    from seed_executions_incremental
+    left join seeds on
         (
-            model_executions_incremental.command_invocation_id = models.command_invocation_id
-            or model_executions_incremental.dbt_cloud_run_id = models.dbt_cloud_run_id
+            seed_executions_incremental.command_invocation_id = seeds.command_invocation_id
+            or seed_executions_incremental.dbt_cloud_run_id = seeds.dbt_cloud_run_id
         )
-        and model_executions_incremental.node_id = models.node_id
+        and seed_executions_incremental.node_id = seeds.node_id
 
 ),
 
 fields as (
 
     select
-        model_execution_id,
+        seed_execution_id,
         command_invocation_id,
         dbt_cloud_run_id,
         artifact_generated_at,
@@ -58,10 +57,9 @@ fields as (
         query_completed_at,
         total_node_runtime,
         rows_affected,
-        model_materialization,
-        model_schema,
+        seed_schema,
         name
-    from model_executions_with_materialization
+    from seed_executions_with_materialization
 
 )
 

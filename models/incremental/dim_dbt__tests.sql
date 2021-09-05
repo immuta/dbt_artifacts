@@ -27,11 +27,8 @@ fields as (
         artifact_generated_at,
         node_id,
         name,
-        source_name,
-        source_schema,
         package_name,
-        relation_name,
-        source_path
+        test_path
     from dbt_tests_incremental
 
 )

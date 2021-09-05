@@ -1,23 +1,23 @@
-{{ config( materialized='incremental', unique_key='model_execution_id' ) }}
+{{ config( materialized='incremental', unique_key='snapshot_execution_id' ) }}
 
-with models as (
+with snapshots as (
 
     select *
     from {{ ref('dim_dbt__snapshots') }}
 
 ),
 
-model_executions as (
+snapshot_executions as (
 
     select *
     from {{ ref('stg_dbt__snapshot_executions') }}
 
 ),
 
-model_executions_incremental as (
+snapshot_executions_incremental as (
 
     select *
-    from model_executions
+    from snapshot_executions
 
     {% if is_incremental() %}
     -- this filter will only be applied on an incremental run
@@ -26,27 +26,26 @@ model_executions_incremental as (
 
 ),
 
-model_executions_with_materialization as (
+snapshot_executions_with_materialization as (
 
     select
-        model_executions_incremental.*,
-        models.model_materialization,
-        models.model_schema,
-        models.name
-    from model_executions_incremental
-    left join models on
+        snapshot_executions_incremental.*,
+        snapshots.snapshot_schema,
+        snapshots.name
+    from snapshot_executions_incremental
+    left join snapshots on
         (
-            model_executions_incremental.command_invocation_id = models.command_invocation_id
-            or model_executions_incremental.dbt_cloud_run_id = models.dbt_cloud_run_id
+            snapshot_executions_incremental.command_invocation_id = snapshots.command_invocation_id
+            or snapshot_executions_incremental.dbt_cloud_run_id = snapshots.dbt_cloud_run_id
         )
-        and model_executions_incremental.node_id = models.node_id
+        and snapshot_executions_incremental.node_id = snapshots.node_id
 
 ),
 
 fields as (
 
     select
-        model_execution_id,
+        snapshot_execution_id,
         command_invocation_id,
         dbt_cloud_run_id,
         artifact_generated_at,
@@ -58,10 +57,9 @@ fields as (
         query_completed_at,
         total_node_runtime,
         rows_affected,
-        model_materialization,
-        model_schema,
+        snapshot_schema,
         name
-    from model_executions_with_materialization
+    from snapshot_executions_with_materialization
 
 )
 
